@@ -119,8 +119,8 @@ mistral/mistral-small-2603
 
 There are two active Codex OAuth connections:
 
-- Plus: `berzinsanton@gmail.com`, priority 1.
-- Go: `karenamaya1086@gmail.com`, priority 2.
+- Plus: Codex 1 (priority 1).
+- Go: Codex 2 (priority 2).
 
 **9Router only recognizes the real provider ID `codex`.** It does not recognize made-up routing prefixes such as `codex_1` or `codex_2`.
 

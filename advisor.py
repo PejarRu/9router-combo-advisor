@@ -164,8 +164,8 @@ def args():
     parser.add_argument("--no-smoke", action="store_true", help="Skip probing proposal models against public 9Router")
     parser.add_argument("--no-or-scores", action="store_true", help="Skip fetching OpenRouter benchmark indices (AI/arena)")
     parser.add_argument("--save-key", action="store_true", help="Store OpenRouter key locally with 0600 permissions")
-    parser.add_argument("--swap-codex", action="store_true", help="Swap Codex priorities: karenamaya1086 -> #1, berzinsanton -> #2")
-    parser.add_argument("--restore-codex", action="store_true", help="Restore original Codex priorities: berzinsanton -> #1, karenamaya1086 -> #2")
+    parser.add_argument("--swap-codex", action="store_true", help="Swap Codex priorities: Codex 2 -> #1, Codex 1 -> #2")
+    parser.add_argument("--restore-codex", action="store_true", help="Restore original Codex priorities: Codex 1 -> #1, Codex 2 -> #2")
     options = parser.parse_args()
     if options.llm and options.jev:
         parser.error("--llm y --jev son excluyentes (elige uno)")
@@ -1102,8 +1102,8 @@ def run_smoke(proposals, models, base=NINE_BASE):
 
 def swap_codex_priority(host, container, direction="swap"):
     """Intercambia prioridades de las dos conexiones Codex.
-    direction: 'swap' = poner karenamaya1086 (Codex 2) como #1, berzinsanton (Codex 1) como #2
-               'restore' = poner berzinsanton (Codex 1) como #1, karenamaya1086 como #2
+direction: 'swap' = poner Codex 2 como #1, Codex 1 como #2
+                'restore' = poner Codex 1 como #1, Codex 2 como #2
     """
     direction_code = "swap" if direction == "swap" else "restore"
     script = f'''
@@ -1136,17 +1136,19 @@ def swap_codex_priority(host, container, direction="swap"):
       const connections = providers.connections || [];
       const codex = connections.filter(p => p.provider === "codex");
       if (codex.length !== 2) throw new Error("Expected 2 codex connections, found " + codex.length);
-      const berz = codex.find(c => c.email && c.email.includes("berzinsanton"));
-      const karen = codex.find(c => c.email && c.email.includes("karenamaya"));
+const codex1Email = process.env.CODEX_1_EMAIL || "codex1@example.com";
+    const codex2Email = process.env.CODEX_2_EMAIL || "codex2@example.com";
+    const berz = codex.find(c => c.email && c.email.includes(codex1Email));
+    const karen = codex.find(c => c.email && c.email.includes(codex2Email));
       if (!berz || !karen) throw new Error("Could not identify both codex accounts by email");
       if ("{direction_code}" === "swap") {{
         await put("/api/providers/" + karen.id, {{priority: 1}});
         await put("/api/providers/" + berz.id, {{priority: 2}});
-        console.log("SWAP: karenamaya -> priority 1, berzinsanton -> priority 2");
-      }} else {{
-        await put("/api/providers/" + berz.id, {{priority: 1}});
-        await put("/api/providers/" + karen.id, {{priority: 2}});
-        console.log("RESTORE: berzinsanton -> priority 1, karenamaya -> priority 2");
+console.log("SWAP: Codex 2 -> priority 1, Codex 1 -> priority 2");
+      } else {
+        await put("/api/providers/" + berz.id, {priority: 1});
+        await put("/api/providers/" + karen.id, {priority: 2});
+        console.log("RESTORE: Codex 1 -> priority 1, Codex 2 -> priority 2");
       }}
       const after = await get("/api/providers");
       const final = (after.connections || []).filter(p => p.provider === "codex").sort((a,b)=>a.priority-b.priority);
