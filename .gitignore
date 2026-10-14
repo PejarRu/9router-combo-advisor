@@ -1,0 +1,5 @@
+proposal.json
+proposal.snapshot.json
+combos-backup-*.json
+__pycache__/
+.env
